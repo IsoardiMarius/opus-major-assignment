@@ -32,24 +32,3 @@ func (s *Store) Get() PlayerData {
 	defer s.mu.RUnlock()
 	return s.data
 }
-
-func (s *Store) Update(p PlayerData) PlayerData {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	// Simple merge semantics (avoid wiping fields if omitted)
-	if p.PlayerID != "" {
-		s.data.PlayerID = p.PlayerID
-	}
-	if p.Username != "" {
-		s.data.Username = p.Username
-	}
-	if p.Level != 0 {
-		s.data.Level = p.Level
-	}
-	if p.Region != "" {
-		s.data.Region = p.Region
-	}
-
-	return s.data
-}

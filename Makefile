@@ -1,15 +1,18 @@
-APP_NAME=player-data-service
+REGISTRY?=ghcr.io/isoardimarius
+IMAGE_NAME?=player-data-service
+IMAGE_TAG?=latest
+IMAGE_FULL=$(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
-.PHONY: tidy test build run
+.PHONY: docker-buildx-setup docker-buildx-local docker-buildx-push
 
-tidy:
-	go mod tidy
+docker-buildx-setup:
+	docker buildx create --use --name opusmajor-builder || true
+	docker buildx inspect --bootstrap
 
-test:
-	go test ./...
+# Build multi-arch et charge dans le Docker local (utile pour tester sur ta machine)
+docker-buildx-local: docker-buildx-setup
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE_FULL) --load .
 
-build:
-	go build -o bin/$(APP_NAME) ./cmd/server
-
-run:
-	PORT=8080 go run ./cmd/server
+# Build multi-arch et push vers registry (GHCR recommandé)
+docker-buildx-push: docker-buildx-setup
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE_FULL) --push .
