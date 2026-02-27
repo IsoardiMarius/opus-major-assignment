@@ -13,7 +13,6 @@ permissions:
 env:
   IMAGE_NAME: player-data-service
   REGISTRY: ghcr.io
-  # GitHub forces lowercase for GHCR namespaces in practice
   IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/player-data-service
 
 jobs:
@@ -29,8 +28,21 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: gofmt check
+        run: |
+          set -euo pipefail
+          UNFORMATTED="$(gofmt -l .)"
+          if [ -n "$UNFORMATTED" ]; then
+            echo "The following files are not gofmt formatted:"
+            echo "$UNFORMATTED"
+            exit 1
+          fi
+
       - name: Go test
         run: go test ./...
+
+      - name: Go test (race)
+        run: go test -race ./...
 
   docker:
     runs-on: ubuntu-latest

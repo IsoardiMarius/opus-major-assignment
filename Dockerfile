@@ -17,20 +17,11 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
 
 # ---- Runtime stage ----
 FROM gcr.io/distroless/static-debian12:nonroot
-WORKDIR /
-COPY --from=builder /out/player-data-service /player-data-service
-EXPOSE 8080
-ENTRYPOINT ["/player-data-service"]
-
-# ---- Runtime stage ----
-FROM gcr.io/distroless/static-debian12:nonroot
 
 WORKDIR /
-
 COPY --from=builder /out/player-data-service /player-data-service
 
-# Expose is documentation only (still nice)
+# Expose is documentation only
 EXPOSE 8080
 
-# Distroless nonroot already uses a non-root user
 ENTRYPOINT ["/player-data-service"]
