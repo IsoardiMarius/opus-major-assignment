@@ -1,9 +1,5 @@
 package playerdata
 
-import (
-	"sync"
-)
-
 type PlayerData struct {
 	PlayerID string `json:"player_id"`
 	Username string `json:"username"`
@@ -12,7 +8,6 @@ type PlayerData struct {
 }
 
 type Store struct {
-	mu   sync.RWMutex
 	data PlayerData
 }
 
@@ -28,7 +23,5 @@ func NewStore() *Store {
 }
 
 func (s *Store) Get() PlayerData {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
 	return s.data
 }

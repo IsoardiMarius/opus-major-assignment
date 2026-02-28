@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - ../../base
 
-# Pour un test local, 1 replica suffit (et ça démarre plus vite)
 patches:
   - target:
       kind: Deployment
@@ -14,8 +13,7 @@ patches:
         path: /spec/replicas
         value: 1
 
-# Mets ici l'image de ta GHCR (tu peux la laisser sur latest pour le test)
 images:
   - name: ghcr.io/isoardimarius/player-data-service
     newName: ghcr.io/isoardimarius/player-data-service
-    newTag: latest
+    newTag: 0.0.0
