@@ -25,13 +25,15 @@ spec:
         app.kubernetes.io/part-of: opus-major-assignment
         app.kubernetes.io/component: api
     spec:
+      serviceAccountName: player-data-service
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 15
       securityContext:
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: api
-          image: ghcr.io/isoardimarius/player-data-service:latest # overridden in overlay
+          image: ghcr.io/isoardimarius/player-data-service:0.0.0 # overridden by immutable digest in overlay
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

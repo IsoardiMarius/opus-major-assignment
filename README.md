@@ -39,6 +39,28 @@ go version
 
 ## Quickstart (Minikube + ArgoCD + GitOps)
 
+### Immutable image flow (CI -> GitOps)
+
+- CI builds and pushes the image, then captures the exact image digest (`sha256:...`).
+- CI updates `deploy/kustomize/overlays/minikube/kustomization.yaml` with that digest.
+- ArgoCD syncs from `main`, so the cluster deploys `image@sha256:...` (immutable).
+
+### Observability assets (versioned)
+
+- Prometheus alert rules are versioned in:
+  - `deploy/kustomize/base/observability-alerts-configmap.yaml`
+- Grafana dashboard JSON is versioned in:
+  - `deploy/kustomize/base/grafana-dashboard-configmap.yaml`
+
+Included alerts:
+- 5xx ratio on `/player-data` > 5% (10m)
+- p95 latency on `/player-data` > 500ms (10m)
+- availability on `/player-data` < 99.5% (15m)
+
+Note:
+- These assets are deployed as `ConfigMap` objects.
+- If you run a Prometheus/Grafana stack with sidecar provisioning, it can load them directly based on labels.
+
 ### 1) Start Minikube
 
 ```
@@ -97,4 +119,3 @@ curl -fsS localhost:8080/metrics | head
 chmod +x scripts/smoke-test.sh
 ./scripts/smoke-test.sh
 ```
-
