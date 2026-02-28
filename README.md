@@ -66,6 +66,13 @@ Note:
 ```
 minikube start --driver=docker
 kubectl get nodes
+minikube addons enable ingress
+```
+
+For Docker driver on macOS, keep a tunnel running in another terminal:
+
+```
+minikube tunnel
 ```
 
 ### 2) Install ArgoCD (recommended: server-side apply)
@@ -88,23 +95,51 @@ kubectl -n argocd rollout status deploy/argocd-application-controller --timeout=
 ### 3) Deploy the app via ArgoCD (GitOps)
 
 ```
+kubectl apply -f deploy/argocd/app-monitoring.yaml
 kubectl apply -f deploy/argocd/app-service.yaml
+kubectl apply -f deploy/argocd/argocd-cmd-params-cm.yaml
+kubectl apply -f deploy/argocd/argocd-server-ingress.yaml
+kubectl -n argocd rollout restart deploy/argocd-server
+kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
 kubectl -n argocd get applications
 ```
 
-Wait until the application is `Synced` and `Healthy`.
+Wait until applications are `Synced` and `Healthy` (especially `monitoring-stack` first).
 
-### 4) Access the service
+### 4) Access the service through Ingress (HTTP)
 
-Port-forward:
+Default local host exposed by Ingress:
+
+- `player-data.127.0.0.1.nip.io`
+
+```
+curl -fsS http://player-data.127.0.0.1.nip.io/healthz
+curl -fsS http://player-data.127.0.0.1.nip.io/readyz
+curl -fsS http://player-data.127.0.0.1.nip.io/player-data
+```
+
+### 5) Access Grafana UI
+
+- URL: `http://grafana.127.0.0.1.nip.io`
+- User: `admin`
+- Password (as configured in `deploy/argocd/app-monitoring.yaml`): `admin1234`
+- The `player-data-service` dashboard should appear automatically from ConfigMap provisioning.
+
+### 6) Access ArgoCD UI
+
+- URL: `http://argocd.127.0.0.1.nip.io`
+- User: `admin`
+- Initial password:
+
+```
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d && echo
+```
+
+Optional (direct service check):
 
 ```
 kubectl -n opus-major port-forward svc/player-data-service 8080:80
-```
-
-Test endpoints:
-
-```
 curl -fsS localhost:8080/healthz
 curl -fsS localhost:8080/readyz
 curl -fsS localhost:8080/player-data

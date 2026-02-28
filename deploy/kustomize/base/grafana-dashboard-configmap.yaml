@@ -30,10 +30,7 @@ data:
           "type": "timeseries",
           "title": "Request Rate (/player-data)",
           "id": 1,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
           "targets": [
             {
@@ -53,10 +50,7 @@ data:
           "type": "timeseries",
           "title": "p95 Latency (/player-data)",
           "id": 2,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
           "targets": [
             {
@@ -84,10 +78,7 @@ data:
           "type": "timeseries",
           "title": "Availability (/player-data)",
           "id": 3,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
           "targets": [
             {

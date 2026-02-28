@@ -10,3 +10,4 @@ resources:
   - networkpolicy.yaml
   - observability-alerts-configmap.yaml
   - grafana-dashboard-configmap.yaml
+  - servicemonitor.yaml
