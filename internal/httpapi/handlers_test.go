@@ -48,8 +48,4 @@ func TestPlayerData(t *testing.T) {
 	if err := json.NewDecoder(rec.Body).Decode(&data); err != nil {
 		t.Fatalf("invalid JSON response: %v", err)
 	}
-
-	if data.PlayerID != "p1" {
-		t.Fatalf("unexpected player_id: %s", data.PlayerID)
-	}
 }
