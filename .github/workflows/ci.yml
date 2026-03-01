@@ -25,21 +25,22 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: app/go.mod
           cache: true
 
       - name: gofmt check
         run: |
+          cd app
           UNFORMATTED="$(gofmt -l .)"
           if [ -n "$UNFORMATTED" ]; then
             echo "Not gofmt-formatted:" && echo "$UNFORMATTED" && exit 1
           fi
 
       - name: go test
-        run: go test ./...
+        run: cd app && go test ./...
 
       - name: go test (race detector)
-        run: go test -race ./...
+        run: cd app && go test -race ./...
 
   #  2. Build & push multi-arch image
   push:
@@ -82,7 +83,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: app
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
@@ -129,7 +130,7 @@ jobs:
       - name: Update Kustomize image digest
         env:
           DIGEST: ${{ needs.push.outputs.digest }}
-          FILE: deploy/kustomize/overlays/minikube/kustomization.yaml
+          FILE: deploy/apps/player-data-service/overlays/minikube/kustomization.yaml
         run: |
           grep -qE '^[[:space:]]*digest:' "$FILE"
           sed -i -E "s|(^[[:space:]]*digest:[[:space:]]*).*$|\1${DIGEST}|" "$FILE"
@@ -142,5 +143,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$FILE"
-          git commit -m "chore(gitops): pin player-data-service digest [skip ci]"
+          git commit -m "chore(deploy): pin player-data-service digest [skip ci]"
           git push

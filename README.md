@@ -22,7 +22,7 @@
 
 ### For local development
 
-- **Go**: **1.25.0** (matches this repository’s `go.mod`)
+- **Go**: **1.25.0** (matches this repository’s `app/go.mod`)
 
   Install: https://go.dev/dl/
 
@@ -39,18 +39,24 @@ go version
 
 ## Quickstart (Minikube + ArgoCD + GitOps)
 
+### Repository layout
+
+- `app/`: Go application source (`cmd/`, `internal/`, `go.mod`, `Dockerfile`, `Makefile`)
+- `deploy/argocd/`: ArgoCD bootstrap and Application manifests
+- `deploy/apps/player-data-service/`: Kubernetes manifests (`base/`, `overlays/minikube/`)
+
 ### Immutable image flow (CI -> GitOps)
 
 - CI builds and pushes the image, then captures the exact image digest (`sha256:...`).
-- CI updates `deploy/kustomize/overlays/minikube/kustomization.yaml` with that digest.
+- CI updates `deploy/apps/player-data-service/overlays/minikube/kustomization.yaml` with that digest.
 - ArgoCD syncs from `main`, so the cluster deploys `image@sha256:...` (immutable).
 
 ### Observability assets (versioned)
 
 - Prometheus alert rules are versioned in:
-  - `deploy/kustomize/base/observability-alerts-configmap.yaml`
+  - `deploy/apps/player-data-service/base/observability-alerts-configmap.yaml`
 - Grafana dashboard JSON is versioned in:
-  - `deploy/kustomize/base/grafana-dashboard-configmap.yaml`
+  - `deploy/apps/player-data-service/base/grafana-dashboard-configmap.yaml`
 
 Included alerts:
 - 5xx ratio on `/player-data` > 5% (10m)
@@ -79,7 +85,7 @@ minikube addons enable ingress
 For Docker driver on macOS, keep a tunnel running in another terminal:
 
 ```
-minikube tunnel
+sudo minikube tunnel
 ```
 
 ### 2) Bootstrap ArgoCD
@@ -94,7 +100,7 @@ Wait for ArgoCD:
 ```
 kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
 kubectl -n argocd rollout status deploy/argocd-repo-server --timeout=300s
-kubectl -n argocd rollout status deploy/argocd-application-controller --timeout=300s
+kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
 ```
 
 ### 3) Deploy the app via ArgoCD (GitOps)
@@ -102,8 +108,7 @@ kubectl -n argocd rollout status deploy/argocd-application-controller --timeout=
 Then apply ArgoCD applications and settings:
 
 ```
-kubectl apply -f deploy/argocd/app-monitoring.yaml
-kubectl apply -f deploy/argocd/app-service.yaml
+kubectl apply -k deploy/argocd/applications
 kubectl -n argocd get applications
 ```
 
@@ -121,7 +126,7 @@ Expected output includes `Prometheus Server is Ready.`.
 
 ArgoCD update speed:
 
-- `deploy/argocd/argocd-cm.yaml` sets polling to every `30s` (no jitter).
+- `deploy/argocd/bootstrap/patches/argocd-cm.yaml` sets polling to every `30s` (no jitter).
 
 
 ### 4) Access the service through Ingress (HTTP)
@@ -140,7 +145,7 @@ curl -fsS http://player-data.127.0.0.1.nip.io/player-data
 
 - URL: http://grafana.127.0.0.1.nip.io
 - User: `admin`
-- Password (as configured in `deploy/argocd/app-monitoring.yaml`): `admin1234`
+- Password (as configured in `deploy/argocd/applications/monitoring-stack.yaml`): `admin1234`
 - The `player-data-service` dashboard should appear automatically from ConfigMap provisioning.
 
 ### 6) Access ArgoCD UI
