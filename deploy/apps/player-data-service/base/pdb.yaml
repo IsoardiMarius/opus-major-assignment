@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: player-data-service
+  namespace: opus-major
+  labels:
+    app.kubernetes.io/name: player-data-service
+    app.kubernetes.io/part-of: opus-major-assignment
+    app.kubernetes.io/component: api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: player-data-service
