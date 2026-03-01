@@ -5,4 +5,4 @@ metadata:
   namespace: argocd
 spec:
   source:
-    path: deploy/apps/player-data-service/overlays/minikube
+    path: infra/apps/player-data-service/overlays/minikube

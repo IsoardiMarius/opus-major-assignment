@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/IsoardiMarius/opus-major-assignment.git
     targetRevision: main
-    path: deploy/apps/player-data-service/base
+    path: infra/apps/player-data-service/base
   destination:
     server: https://kubernetes.default.svc
     namespace: opus-major
