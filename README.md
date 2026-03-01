@@ -39,12 +39,6 @@ go version
 
 ## Quickstart (Minikube + ArgoCD + GitOps)
 
-### Repository layout
-
-- `app/`: Go application source (`cmd/`, `internal/`, `go.mod`, `Dockerfile`, `Makefile`)
-- `deploy/argocd/`: ArgoCD bootstrap and Application manifests
-- `deploy/apps/player-data-service/`: Kubernetes manifests (`base/`, `overlays/minikube/`)
-
 ### Immutable image flow (CI -> GitOps)
 
 - CI builds and pushes the image, then captures the exact image digest (`sha256:...`).
@@ -92,7 +86,7 @@ sudo minikube tunnel
 
 ```
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply --server-side --force-conflicts -n argocd -k deploy/argocd/bootstrap
+kubectl apply --server-side --force-conflicts -n argocd -k deploy/argocd/bootstrap/overlays/minikube
 ```
 
 Wait for ArgoCD:
@@ -108,7 +102,7 @@ kubectl -n argocd rollout status statefulset/argocd-application-controller --tim
 Then apply ArgoCD applications and settings:
 
 ```
-kubectl apply -k deploy/argocd/applications
+kubectl apply -k deploy/argocd/applications/overlays/minikube
 kubectl -n argocd get applications
 ```
 
@@ -126,7 +120,7 @@ Expected output includes `Prometheus Server is Ready.`.
 
 ArgoCD update speed:
 
-- `deploy/argocd/bootstrap/patches/argocd-cm.yaml` sets polling to every `30s` (no jitter).
+- `deploy/argocd/bootstrap/base/patches/argocd-cm.yaml` sets polling to every `30s` (no jitter).
 
 
 ### 4) Access the service through Ingress (HTTP)
@@ -145,7 +139,7 @@ curl -fsS http://player-data.127.0.0.1.nip.io/player-data
 
 - URL: http://grafana.127.0.0.1.nip.io
 - User: `admin`
-- Password (as configured in `deploy/argocd/applications/monitoring-stack.yaml`): `admin1234`
+- Password (as configured in `deploy/argocd/applications/base/monitoring-stack.yaml`): `admin1234`
 - The `player-data-service` dashboard should appear automatically from ConfigMap provisioning.
 
 ### 6) Access ArgoCD UI

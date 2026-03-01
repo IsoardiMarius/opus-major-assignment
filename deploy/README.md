@@ -7,12 +7,14 @@ This folder is split into two concerns:
 
 ### ArgoCD
 
-- `argocd/bootstrap/`: install ArgoCD and apply local bootstrap customizations.
-  - `ingress/`: ArgoCD ingress definitions.
-  - `patches/`: ConfigMap patches applied during bootstrap.
-- `argocd/applications/`: declarative ArgoCD applications for this repository.
+- `argocd/bootstrap/base/`: ArgoCD install manifest + shared bootstrap patches.
+- `argocd/bootstrap/overlays/minikube/`: environment-specific bootstrap resources.
+- `argocd/applications/base/`: shared ArgoCD Application definitions.
+- `argocd/applications/overlays/minikube/`: environment-specific Application patches.
 
 ### Workloads
 
 - `apps/player-data-service/base/`: reusable base manifests.
 - `apps/player-data-service/overlays/minikube/`: environment-specific overlay.
+  - `network/ingress.yaml`: ingress is environment-specific (host/class routing).
+  - `patches/`: per-environment patch set (for example replicas).

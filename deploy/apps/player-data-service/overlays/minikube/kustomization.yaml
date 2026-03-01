@@ -3,16 +3,13 @@ kind: Kustomization
 
 resources:
   - ../../base
-  - ingress.yaml
+  - network/ingress.yaml
 
 patches:
-  - target:
+  - path: patches/deployment-replicas.yaml
+    target:
       kind: Deployment
       name: player-data-service
-    patch: |-
-      - op: replace
-        path: /spec/replicas
-        value: 1
 
 images:
   - name: ghcr.io/isoardimarius/player-data-service
