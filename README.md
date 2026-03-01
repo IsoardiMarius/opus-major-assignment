@@ -82,13 +82,10 @@ For Docker driver on macOS, keep a tunnel running in another terminal:
 minikube tunnel
 ```
 
-### 2) Install ArgoCD (recommended: server-side apply)
+### 2) Bootstrap ArgoCD (single apply)
 
 ```
-kubectl create namespace argocd
-
-kubectl apply -n argocd --server-side --force-conflicts \
--f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply --server-side --force-conflicts -k deploy/argocd/bootstrap
 ```
 
 Wait for ArgoCD:
@@ -101,25 +98,11 @@ kubectl -n argocd rollout status deploy/argocd-application-controller --timeout=
 
 ### 3) Deploy the app via ArgoCD (GitOps)
 
-Install Prometheus Operator CRDs first (server-side apply):
-
-```
-chmod +x scripts/install-prometheus-operator-crds.sh
-./scripts/install-prometheus-operator-crds.sh
-```
-
 Then apply ArgoCD applications and settings:
 
 ```
 kubectl apply -f deploy/argocd/app-monitoring.yaml
 kubectl apply -f deploy/argocd/app-service.yaml
-kubectl apply -f deploy/argocd/argocd-cmd-params-cm.yaml
-kubectl apply -f deploy/argocd/argocd-cm.yaml
-kubectl apply -f deploy/argocd/argocd-server-ingress.yaml
-kubectl -n argocd rollout restart deploy/argocd-server
-kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
-kubectl -n argocd rollout restart statefulset/argocd-application-controller
-kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
 kubectl -n argocd get applications
 ```
 

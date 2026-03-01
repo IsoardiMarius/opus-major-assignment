@@ -13,7 +13,7 @@ spec:
       releaseName: kube-prometheus-stack
       values: |
         crds:
-          enabled: false
+          enabled: true
         grafana:
           adminPassword: "admin1234"
           grafana.ini:
@@ -43,3 +43,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
