@@ -8,10 +8,12 @@ spec:
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    targetRevision: "*"
+    targetRevision: "82.4.3"
     helm:
       releaseName: kube-prometheus-stack
       values: |
+        crds:
+          enabled: false
         grafana:
           adminPassword: "admin1234"
           ingress:

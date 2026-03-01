@@ -61,7 +61,14 @@ Note:
 - These assets are deployed as `ConfigMap` objects.
 - If you run a Prometheus/Grafana stack with sidecar provisioning, it can load them directly based on labels.
 
-### 1) Start Minikube
+### 0) Clean reset (optional but recommended)
+
+```
+pkill -f "minikube tunnel" || true
+minikube delete --all --purge || true
+```
+
+### 1) Start Minikube and Ingress
 
 ```
 minikube start --driver=docker
@@ -94,6 +101,15 @@ kubectl -n argocd rollout status deploy/argocd-application-controller --timeout=
 
 ### 3) Deploy the app via ArgoCD (GitOps)
 
+Install Prometheus Operator CRDs first (server-side apply):
+
+```
+chmod +x scripts/install-prometheus-operator-crds.sh
+./scripts/install-prometheus-operator-crds.sh
+```
+
+Then apply ArgoCD applications and settings:
+
 ```
 kubectl apply -f deploy/argocd/app-monitoring.yaml
 kubectl apply -f deploy/argocd/app-service.yaml
@@ -106,6 +122,24 @@ kubectl -n argocd rollout restart statefulset/argocd-application-controller
 kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
 kubectl -n argocd get applications
 ```
+
+Verify monitoring stack is ready:
+
+```
+kubectl -n argocd get applications
+kubectl -n monitoring get prometheus,alertmanager
+kubectl -n monitoring get pods
+kubectl -n monitoring exec deploy/kube-prometheus-stack-grafana -c grafana -- \
+  sh -c 'wget -qO- http://kube-prometheus-stack-prometheus.monitoring:9090/-/ready; echo'
+```
+
+Expected output includes `Prometheus Server is Ready.`.
+
+ArgoCD update speed:
+
+- `deploy/argocd/argocd-cm.yaml` sets polling to every `5s` (no jitter).
+- For near-instant updates after push, configure a GitHub webhook to:
+  - `http://argocd.127.0.0.1.nip.io/api/webhook`
 
 
 ### 4) Access the service through Ingress (HTTP)
@@ -136,21 +170,4 @@ curl -fsS http://player-data.127.0.0.1.nip.io/player-data
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d && echo
-```
-
-Optional (direct service check):
-
-```
-kubectl -n opus-major port-forward svc/player-data-service 8080:80
-curl -fsS localhost:8080/healthz
-curl -fsS localhost:8080/readyz
-curl -fsS localhost:8080/player-data
-curl -fsS localhost:8080/metrics | head
-```
-
-## Optional: Run the smoke test
-
-```
-chmod +x scripts/smoke-test.sh
-./scripts/smoke-test.sh
 ```
