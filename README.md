@@ -138,8 +138,6 @@ Expected output includes `Prometheus Server is Ready.`.
 ArgoCD update speed:
 
 - `deploy/argocd/argocd-cm.yaml` sets polling to every `5s` (no jitter).
-- For near-instant updates after push, configure a GitHub webhook to:
-  - `http://argocd.127.0.0.1.nip.io/api/webhook`
 
 
 ### 4) Access the service through Ingress (HTTP)
