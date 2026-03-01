@@ -3,6 +3,14 @@ kind: Kustomization
 
 resources:
   - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-  - ../argocd-cmd-params-cm.yaml
-  - ../argocd-cm.yaml
-  - ../argocd-server-ingress.yaml
+  - argocd-server-ingress.yaml
+
+patches:
+  - path: argocd-cmd-params-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+  - path: argocd-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm

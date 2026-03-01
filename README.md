@@ -82,10 +82,11 @@ For Docker driver on macOS, keep a tunnel running in another terminal:
 minikube tunnel
 ```
 
-### 2) Bootstrap ArgoCD (single apply)
+### 2) Bootstrap ArgoCD
 
 ```
-kubectl apply --server-side --force-conflicts -k deploy/argocd/bootstrap
+kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply --server-side --force-conflicts -n argocd -k deploy/argocd/bootstrap
 ```
 
 Wait for ArgoCD:
@@ -145,6 +146,7 @@ curl -fsS http://player-data.127.0.0.1.nip.io/player-data
 ### 6) Access ArgoCD UI
 
 - URL: http://argocd.127.0.0.1.nip.io
+- Local note: HTTPS can present a self-signed cert warning; HTTP is the default local entrypoint.
 - User: `admin`
 - Initial password:
 
