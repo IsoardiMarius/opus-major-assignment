@@ -14,8 +14,8 @@ data:
       "title": "Player Data Service - SLO",
       "uid": "player-data-slo",
       "schemaVersion": 39,
-      "version": 2,
-      "refresh": "1s",
+      "version": 3,
+      "refresh": "5s",
       "timezone": "browser",
       "tags": ["opus-major", "sre", "slo"],
       "time": {
@@ -23,7 +23,7 @@ data:
         "to": "now"
       },
       "timepicker": {
-        "refresh_intervals": ["1s", "2s", "5s", "10s", "30s", "1m"]
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
       },
       "templating": {
         "list": []

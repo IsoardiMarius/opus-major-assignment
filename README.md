@@ -137,14 +137,14 @@ Expected output includes `Prometheus Server is Ready.`.
 
 ArgoCD update speed:
 
-- `deploy/argocd/argocd-cm.yaml` sets polling to every `5s` (no jitter).
+- `deploy/argocd/argocd-cm.yaml` sets polling to every `30s` (no jitter).
 
 
 ### 4) Access the service through Ingress (HTTP)
 
 Default local host exposed by Ingress:
 
-- `player-data.127.0.0.1.nip.io`
+- http://player-data.127.0.0.1.nip.io/player-data
 
 ```
 curl -fsS http://player-data.127.0.0.1.nip.io/healthz
@@ -154,14 +154,14 @@ curl -fsS http://player-data.127.0.0.1.nip.io/player-data
 
 ### 5) Access Grafana UI
 
-- URL: `http://grafana.127.0.0.1.nip.io`
+- URL: http://grafana.127.0.0.1.nip.io
 - User: `admin`
 - Password (as configured in `deploy/argocd/app-monitoring.yaml`): `admin1234`
 - The `player-data-service` dashboard should appear automatically from ConfigMap provisioning.
 
 ### 6) Access ArgoCD UI
 
-- URL: `http://argocd.127.0.0.1.nip.io`
+- URL: http://argocd.127.0.0.1.nip.io
 - User: `admin`
 - Initial password:
 
