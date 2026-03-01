@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: player-data-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/IsoardiMarius/opus-major-assignment.git
+    targetRevision: main
+    path: deploy/apps/player-data-service/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opus-major
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true

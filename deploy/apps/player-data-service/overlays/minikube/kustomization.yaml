@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - network/ingress.yaml
+
+patches:
+  - path: patches/deployment-replicas.yaml
+    target:
+      kind: Deployment
+      name: player-data-service
+
+images:
+  - name: ghcr.io/isoardimarius/player-data-service
+    newName: ghcr.io/isoardimarius/player-data-service
+    digest: sha256:0c346b12373708966af6774a9ba5c8709098d80acaba380eb3b160c06c9dd46f

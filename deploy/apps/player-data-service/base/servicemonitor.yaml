@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: player-data-service
+  namespace: opus-major
+  labels:
+    app.kubernetes.io/name: player-data-service
+    app.kubernetes.io/part-of: opus-major-assignment
+    app.kubernetes.io/component: observability
+spec:
+  namespaceSelector:
+    matchNames:
+      - opus-major
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: player-data-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
