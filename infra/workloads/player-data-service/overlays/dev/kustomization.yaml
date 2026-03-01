@@ -3,10 +3,10 @@ kind: Kustomization
 
 resources:
   - ../../base
-  - network/ingress.yaml
+  - ingress.yaml
 
 patches:
-  - path: patches/deployment-replicas.yaml
+  - path: patches/patch-deployment-replicas.yaml
     target:
       kind: Deployment
       name: player-data-service

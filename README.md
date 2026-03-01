@@ -42,15 +42,15 @@ go version
 ### Immutable image flow (CI -> GitOps)
 
 - CI builds and pushes the image, then captures the exact image digest (`sha256:...`).
-- CI updates `infra/apps/player-data-service/overlays/minikube/kustomization.yaml` with that digest.
+- CI updates `infra/workloads/player-data-service/overlays/dev/kustomization.yaml` with that digest.
 - ArgoCD syncs from `main`, so the cluster deploys `image@sha256:...` (immutable).
 
 ### Observability assets (versioned)
 
 - Prometheus alert rules are versioned in:
-  - `infra/apps/player-data-service/base/observability-alerts-configmap.yaml`
+  - `infra/workloads/player-data-service/base/observability/prometheus-rules-configmap.yaml`
 - Grafana dashboard JSON is versioned in:
-  - `infra/apps/player-data-service/base/grafana-dashboard-configmap.yaml`
+  - `infra/workloads/player-data-service/base/observability/grafana-dashboard-configmap.yaml`
 
 Included alerts:
 - 5xx ratio on `/player-data` > 5% (10m)
@@ -86,7 +86,7 @@ sudo minikube tunnel
 
 ```
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply --server-side --force-conflicts -n argocd -k infra/argocd/bootstrap/overlays/minikube
+kubectl apply --server-side --force-conflicts -k infra/clusters/minikube-dev/bootstrap/argocd
 ```
 
 Wait for ArgoCD:
@@ -102,7 +102,7 @@ kubectl -n argocd rollout status statefulset/argocd-application-controller --tim
 Then apply ArgoCD applications and settings:
 
 ```
-kubectl apply -k infra/argocd/applications/overlays/minikube
+kubectl apply -k infra/clusters/minikube-dev/apps
 kubectl -n argocd get applications
 ```
 
@@ -120,7 +120,7 @@ Expected output includes `Prometheus Server is Ready.`.
 
 ArgoCD update speed:
 
-- `infra/argocd/bootstrap/base/patches/argocd-cm.yaml` sets polling to every `30s` (no jitter).
+- `infra/clusters/minikube-dev/bootstrap/argocd/patches/argocd-cm.yaml` sets polling to every `30s` (no jitter).
 
 
 ### 4) Access the service through Ingress (HTTP)
@@ -139,7 +139,7 @@ curl -fsS http://player-data.127.0.0.1.nip.io/player-data
 
 - URL: http://grafana.127.0.0.1.nip.io
 - User: `admin`
-- Password (as configured in `infra/argocd/applications/base/monitoring-stack.yaml`): `admin1234`
+- Password (as configured in `infra/platform/monitoring-stack/values/dev.yaml`): `admin1234`
 - The `player-data-service` dashboard should appear automatically from ConfigMap provisioning.
 
 ### 6) Access ArgoCD UI
