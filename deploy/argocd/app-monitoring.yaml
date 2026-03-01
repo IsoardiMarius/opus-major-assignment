@@ -16,6 +16,9 @@ spec:
           enabled: false
         grafana:
           adminPassword: "admin1234"
+          grafana.ini:
+            dashboards:
+              min_refresh_interval: 1s
           ingress:
             enabled: true
             ingressClassName: nginx
