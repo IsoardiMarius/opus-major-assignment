@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  # Default is ~3 minutes. Lower value = faster detection of new commits.
+  timeout.reconciliation: 15s
+  # Remove random delay to keep sync latency predictable.
+  timeout.reconciliation.jitter: 0s

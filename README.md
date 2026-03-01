@@ -98,9 +98,12 @@ kubectl -n argocd rollout status deploy/argocd-application-controller --timeout=
 kubectl apply -f deploy/argocd/app-monitoring.yaml
 kubectl apply -f deploy/argocd/app-service.yaml
 kubectl apply -f deploy/argocd/argocd-cmd-params-cm.yaml
+kubectl apply -f deploy/argocd/argocd-cm.yaml
 kubectl apply -f deploy/argocd/argocd-server-ingress.yaml
 kubectl -n argocd rollout restart deploy/argocd-server
 kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
+kubectl -n argocd rollout restart statefulset/argocd-application-controller
+kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
 kubectl -n argocd get applications
 ```
 
@@ -145,8 +148,6 @@ curl -fsS localhost:8080/readyz
 curl -fsS localhost:8080/player-data
 curl -fsS localhost:8080/metrics | head
 ```
-
----
 
 ## Optional: Run the smoke test
 
