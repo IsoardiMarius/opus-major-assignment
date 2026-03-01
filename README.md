@@ -107,7 +107,6 @@ kubectl -n argocd rollout status statefulset/argocd-application-controller --tim
 kubectl -n argocd get applications
 ```
 
-Wait until applications are `Synced` and `Healthy` (especially `monitoring-stack` first).
 
 ### 4) Access the service through Ingress (HTTP)
 
