@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: opus-major
+
+resources:
+  - ../../base
+  - ../../components/observability
+  - namespace.yaml
+  - ingress.yaml
+  - networkpolicy.yaml
+
+patches:
+  - path: patches/deployment-replicas.patch.yaml
+    target:
+      kind: Deployment
+      name: player-data-service
+
+images:
+  - name: ghcr.io/isoardimarius/player-data-service
+    newName: ghcr.io/isoardimarius/player-data-service
+    digest: sha256:5a8d211abfe73046497bf9bca5bdd1242ff65111814fef7248a78a8c0ff7eacc

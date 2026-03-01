@@ -1,20 +1,37 @@
 ## Deploy Layout
 
-This folder is split into two concerns:
+This directory is split by lifecycle responsibility.
 
-- `argocd/`: ArgoCD bootstrap and ArgoCD `Application` resources.
-- `apps/`: Kubernetes manifests for workloads managed by ArgoCD.
+- `bootstrap/`: install and minimally configure Argo CD.
+- `clusters/`: cluster desired state (AppProject + Argo CD Applications).
+- `platform/`: shared platform stacks configuration (monitoring values).
+- `workloads/`: service-level Kubernetes manifests.
 
-### ArgoCD
+### `bootstrap/argocd`
 
-- `argocd/bootstrap/base/`: ArgoCD install manifest + shared bootstrap patches.
-- `argocd/bootstrap/overlays/minikube/`: environment-specific bootstrap resources.
-- `argocd/applications/base/`: shared ArgoCD Application definitions.
-- `argocd/applications/overlays/minikube/`: environment-specific Application patches.
+- `base/`: pinned Argo CD install source.
+- `overlays/minikube/`: local-only patches (`server.insecure`, fast reconciliation, ingress host).
 
-### Workloads
+### `clusters/minikube`
 
-- `apps/player-data-service/base/`: reusable base manifests.
-- `apps/player-data-service/overlays/minikube/`: environment-specific overlay.
-  - `network/ingress.yaml`: ingress is environment-specific (host/class routing).
-  - `patches/`: per-environment patch set (for example replicas).
+- `root-app.yaml`: app-of-apps entrypoint applied once.
+- `kustomization.yaml`: managed resources for the cluster.
+- `project-opus-major.yaml`: Argo CD guardrails (sources/destinations).
+- `apps/`: child applications (`platform-monitoring`, `player-data-service`).
+
+### `platform/monitoring`
+
+- `overlays/minikube/values.yaml`: kube-prometheus-stack chart values for local setup.
+
+### `workloads/player-data-service`
+
+- `base/`: environment-agnostic core workload (Deployment/Service/SA/PDB).
+- `components/observability/`: opt-in observability resources (ServiceMonitor, PrometheusRule, Grafana dashboard).
+- `overlays/minikube/`: namespace, ingress, network policy, replica patch, immutable image digest.
+
+## Conventions
+
+- Argo CD Applications always target environment overlays, never raw bases.
+- `base/` contains no local-only concerns.
+- Environment-specific settings live in `overlays/<env>`.
+- Monitoring rules use `PrometheusRule` CRDs (not ad-hoc ConfigMaps).

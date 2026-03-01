@@ -1,35 +1,14 @@
 ## Prerequisites
 
-> **Note:** Versions below are recommended but not strictly required.
+- Docker Desktop
+- Minikube
+- kubectl
+- Git
+- Go 1.25.x (for local app development)
 
-### Required
+Optional local checks:
 
-- **Docker Desktop**: **4.62.0**
-
-  Install: https://docs.docker.com/desktop/
-
-- **Minikube**: **v1.38.1**
-
-  Install: https://minikube.sigs.k8s.io/docs/start/
-
-- **kubectl**: **v1.35.1**
-
-  Install: https://kubernetes.io/docs/tasks/tools/
-
-- **Git**:
-
-  Install: https://git-scm.com/install/
-
-### For local development
-
-- **Go**: **1.25.0** (matches this repository’s `app/go.mod`)
-
-  Install: https://go.dev/dl/
-
-
-### Verify your installation
-
-```
+```bash
 docker version
 minikube version
 kubectl version
@@ -37,119 +16,108 @@ git --version
 go version
 ```
 
-## Quickstart (Minikube + ArgoCD + GitOps)
+## Architecture (GitOps)
 
-### Immutable image flow (CI -> GitOps)
+- Argo CD bootstrap: `deploy/bootstrap/argocd/overlays/minikube`
+- Cluster desired state (AppProject + child Applications): `deploy/clusters/minikube`
+- Platform stack (kube-prometheus-stack values): `deploy/platform/monitoring/overlays/minikube/values.yaml`
+- Workload manifests: `deploy/workloads/player-data-service`
 
-- CI builds and pushes the image, then captures the exact image digest (`sha256:...`).
-- CI updates `deploy/apps/player-data-service/overlays/minikube/kustomization.yaml` with that digest.
-- ArgoCD syncs from `main`, so the cluster deploys `image@sha256:...` (immutable).
+Deployment model:
 
-### Observability assets (versioned)
+1. Bootstrap Argo CD once.
+2. Apply the root app (`app-of-apps`).
+3. Argo CD continuously syncs platform + workload from Git.
 
-- Prometheus alert rules are versioned in:
-  - `deploy/apps/player-data-service/base/observability-alerts-configmap.yaml`
-- Grafana dashboard JSON is versioned in:
-  - `deploy/apps/player-data-service/base/grafana-dashboard-configmap.yaml`
+## Quickstart (Minikube + Argo CD)
 
-Included alerts:
-- 5xx ratio on `/player-data` > 5% (10m)
-- p95 latency on `/player-data` > 500ms (10m)
-- availability on `/player-data` < 99.5% (15m)
+### 0) Optional clean reset
 
-Note:
-- These assets are deployed as `ConfigMap` objects.
-- If you run a Prometheus/Grafana stack with sidecar provisioning, it can load them directly based on labels.
-
-### 0) Clean reset (optional but recommended)
-
-```
+```bash
 pkill -f "minikube tunnel" || true
 minikube delete --all --purge || true
 ```
 
-### 1) Start Minikube and Ingress
+### 1) Start cluster and ingress
 
-```
+```bash
 minikube start --driver=docker
-kubectl get nodes
 minikube addons enable ingress
+kubectl get nodes
 ```
 
-For Docker driver on macOS, keep a tunnel running in another terminal:
+For Docker driver on macOS:
 
-```
+```bash
 sudo minikube tunnel
 ```
 
-### 2) Bootstrap ArgoCD
+### 2) Bootstrap Argo CD
 
-```
+```bash
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply --server-side --force-conflicts -n argocd -k deploy/argocd/bootstrap/overlays/minikube
+kubectl apply --server-side --force-conflicts -n argocd -k deploy/bootstrap/argocd/overlays/minikube
 ```
 
-Wait for ArgoCD:
+Wait for Argo CD core components:
 
-```
+```bash
 kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
 kubectl -n argocd rollout status deploy/argocd-repo-server --timeout=300s
 kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
 ```
 
-### 3) Deploy the app via ArgoCD (GitOps)
+### 3) Apply root application (cluster desired state)
 
-Then apply ArgoCD applications and settings:
-
-```
-kubectl apply -k deploy/argocd/applications/overlays/minikube
+```bash
+kubectl apply -f deploy/clusters/minikube/root-app.yaml
 kubectl -n argocd get applications
 ```
 
-Verify monitoring stack is ready:
+Expected apps:
 
-```
-kubectl -n argocd get applications
-kubectl -n monitoring get prometheus,alertmanager
-kubectl -n monitoring get pods
-kubectl -n monitoring exec deploy/kube-prometheus-stack-grafana -c grafana -- \
-  sh -c 'wget -qO- http://kube-prometheus-stack-prometheus.monitoring:9090/-/ready; echo'
-```
+- `cluster-minikube-root`
+- `platform-monitoring`
+- `player-data-service`
 
-Expected output includes `Prometheus Server is Ready.`.
+### 4) Validate service + observability
 
-ArgoCD update speed:
-
-- `deploy/argocd/bootstrap/base/patches/argocd-cm.yaml` sets polling to every `30s` (no jitter).
-
-
-### 4) Access the service through Ingress (HTTP)
-
-Default local host exposed by Ingress:
-
-- http://player-data.127.0.0.1.nip.io/player-data
-
-```
-curl -fsS http://player-data.127.0.0.1.nip.io/healthz
-curl -fsS http://player-data.127.0.0.1.nip.io/readyz
+```bash
 curl -fsS http://player-data.127.0.0.1.nip.io/player-data
 ```
 
-### 5) Access Grafana UI
+Grafana:
 
 - URL: http://grafana.127.0.0.1.nip.io
 - User: `admin`
-- Password (as configured in `deploy/argocd/applications/base/monitoring-stack.yaml`): `admin1234`
-- The `player-data-service` dashboard should appear automatically from ConfigMap provisioning.
+- Password (local-only setup): `admin1234`
 
-### 6) Access ArgoCD UI
+Argo CD:
 
 - URL: http://argocd.127.0.0.1.nip.io
-- Local note: HTTPS can present a self-signed cert warning; HTTP is the default local entrypoint.
 - User: `admin`
 - Initial password:
 
-```
+```bash
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d && echo
 ```
+
+## Immutable image flow
+
+CI builds/pushes image, captures digest, then updates:
+
+- `deploy/workloads/player-data-service/overlays/minikube/kustomization.yaml`
+
+Argo CD then deploys immutable `image@sha256:...`.
+
+## Local validation helpers
+
+```bash
+make -C deploy validate
+```
+
+Notes:
+
+- `render-bootstrap` needs network access (`raw.githubusercontent.com`) because Argo CD install is pinned from upstream.
+- `server.insecure=true` and Grafana admin password are intentionally scoped to Minikube overlay for local demo convenience.

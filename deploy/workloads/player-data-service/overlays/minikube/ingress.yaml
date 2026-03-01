@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: player-data-service
+  labels:
+    app.kubernetes.io/name: player-data-service
+    app.kubernetes.io/part-of: opus-major-assignment
+    app.kubernetes.io/component: ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: player-data.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /player-data
+            pathType: Prefix
+            backend:
+              service:
+                name: player-data-service
+                port:
+                  number: 80

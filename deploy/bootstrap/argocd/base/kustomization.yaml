@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Pinned Argo CD version for reproducible bootstrap.
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.11.7/manifests/install.yaml

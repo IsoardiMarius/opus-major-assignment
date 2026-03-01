@@ -130,7 +130,7 @@ jobs:
       - name: Update Kustomize image digest
         env:
           DIGEST: ${{ needs.push.outputs.digest }}
-          FILE: deploy/apps/player-data-service/overlays/minikube/kustomization.yaml
+          FILE: deploy/workloads/player-data-service/overlays/minikube/kustomization.yaml
         run: |
           grep -qE '^[[:space:]]*digest:' "$FILE"
           sed -i -E "s|(^[[:space:]]*digest:[[:space:]]*).*$|\1${DIGEST}|" "$FILE"
