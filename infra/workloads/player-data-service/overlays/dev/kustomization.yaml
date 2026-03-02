@@ -14,4 +14,4 @@ patches:
 images:
   - name: ghcr.io/isoardimarius/player-data-service
     newName: ghcr.io/isoardimarius/player-data-service
-    digest: sha256:aaf1b6ba5d369cd6b88d324bd6b16777f8db25dc77dd11c1593b35626efba400
+    digest: sha256:a0feacee06f70eff23cf7fcf49099542f278d804e9a1bde16f763fb609d84ecc
