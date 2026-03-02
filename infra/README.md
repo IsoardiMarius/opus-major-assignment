@@ -40,7 +40,8 @@ Voir aussi: `docs/structure-conventions.md`.
 1. Bootstrap ArgoCD:
 
 ```bash
-kustomize build clusters/minikube-dev/bootstrap/argocd | kubectl apply -f -
+kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+kustomize build clusters/minikube-dev/bootstrap/argocd | kubectl apply --server-side --force-conflicts -n argocd -f -
 ```
 
 2. Déployer les Applications ArgoCD:

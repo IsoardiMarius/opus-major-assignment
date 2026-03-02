@@ -86,7 +86,7 @@ sudo minikube tunnel
 
 ```
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply --server-side --force-conflicts -k infra/clusters/minikube-dev/bootstrap/argocd
+kubectl apply --server-side --force-conflicts -n argocd -k infra/clusters/minikube-dev/bootstrap/argocd
 ```
 
 Wait for ArgoCD:
