@@ -34,7 +34,7 @@ kubectl -n argocd rollout status deploy/argocd-server --timeout=600s
 ## 3) Create Grafana admin secret
 
 ```bash
-bash infra/scripts/create-grafana-admin-secret.sh
+bash infra/scripts/create-grafana-admin-secret.sh .env
 ```
 
 This reads `.env` and creates `monitoring/grafana-admin-credentials`.
