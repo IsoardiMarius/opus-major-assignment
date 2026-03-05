@@ -161,7 +161,7 @@ After script ends:
 Details: [`docs/observability.md`](docs/observability.md)
 
 ## Architecture and trade-offs
-
+ 
 - Repository layout: [`docs/repo-layout.md`](docs/repo-layout.md)
 - Architecture: [`docs/architecture.md`](docs/architecture.md)
 - Trade-offs and assumptions: [`docs/trade-offs.md`](docs/trade-offs.md)
