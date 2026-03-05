@@ -175,15 +175,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.30.0
+      - name: Login to GHCR (read)
+        uses: docker/login-action@v3
         with:
-          image-ref: ${{ needs.push.outputs.image }}@${{ needs.push.outputs.digest }}
-          format: sarif
-          output: trivy-results.sarif
-          severity: CRITICAL,HIGH
-          exit-code: "1"
-          ignore-unfixed: true
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy vulnerability scanner (container mode)
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e TRIVY_USERNAME="${{ github.actor }}" \
+            -e TRIVY_PASSWORD="${{ secrets.GITHUB_TOKEN }}" \
+            -v "${PWD}:/work" \
+            aquasec/trivy:0.60.0 image \
+            --format sarif \
+            --output /work/trivy-results.sarif \
+            --severity CRITICAL,HIGH \
+            --exit-code 1 \
+            --ignore-unfixed \
+            "${{ needs.push.outputs.image }}@${{ needs.push.outputs.digest }}"
 
       - name: Upload Trivy results to GitHub Security tab
         if: always() && hashFiles('trivy-results.sarif') != ''
