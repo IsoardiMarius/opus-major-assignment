@@ -1,0 +1,3 @@
+- op: replace
+  path: /spec/strategy/canary/analysis/args/0/value
+  value: player-data-dev

@@ -1,0 +1,26 @@
+- op: replace
+  path: /spec/groups/0/rules/0/expr
+  value: |
+    (
+      sum by (namespace) (rate(http_requests_total{path="/player-data",status=~"5..",namespace="player-data-dev"}[5m]))
+      /
+      clamp_min(sum by (namespace) (rate(http_requests_total{path="/player-data",namespace="player-data-dev"}[5m])), 0.001)
+    ) > 0.05
+- op: replace
+  path: /spec/groups/0/rules/1/expr
+  value: |
+    histogram_quantile(
+      0.95,
+      sum by (namespace, le) (rate(http_request_duration_seconds_bucket{path="/player-data",namespace="player-data-dev"}[5m]))
+    ) > 0.50
+- op: replace
+  path: /spec/groups/0/rules/2/expr
+  value: |
+    (
+      1 -
+      (
+        sum by (namespace) (rate(http_requests_total{path="/player-data",status=~"5..",namespace="player-data-dev"}[5m]))
+        /
+        clamp_min(sum by (namespace) (rate(http_requests_total{path="/player-data",namespace="player-data-dev"}[5m])), 0.001)
+      )
+    ) < 0.995

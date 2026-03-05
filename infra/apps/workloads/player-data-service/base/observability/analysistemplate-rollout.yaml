@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: player-data-rollout-analysis
+  labels:
+    app.kubernetes.io/name: player-data-service
+    app.kubernetes.io/component: observability
+spec:
+  args:
+    - name: namespace
+  metrics:
+    - name: availability
+      interval: 30s
+      count: 4
+      failureLimit: 1
+      successCondition: result[0] >= 0.995
+      provider:
+        prometheus:
+          address: http://kube-prometheus-stack-prometheus.monitoring:9090
+          query: |
+            (
+              1 -
+              (
+                sum(rate(http_requests_total{path="/player-data",status=~"5..",namespace="{{args.namespace}}"}[1m]))
+                /
+                clamp_min(sum(rate(http_requests_total{path="/player-data",namespace="{{args.namespace}}"}[1m])), 0.001)
+              )
+            ) or vector(1)
+
+    - name: p95-latency
+      interval: 30s
+      count: 4
+      failureLimit: 1
+      successCondition: result[0] <= 0.50
+      provider:
+        prometheus:
+          address: http://kube-prometheus-stack-prometheus.monitoring:9090
+          query: |
+            (
+              histogram_quantile(
+                0.95,
+                sum by (le) (rate(http_request_duration_seconds_bucket{path="/player-data",namespace="{{args.namespace}}"}[1m]))
+              )
+              *
+              on() group_left()
+              (sum(rate(http_request_duration_seconds_count{path="/player-data",namespace="{{args.namespace}}"}[1m])) > 0)
+            ) or vector(0)

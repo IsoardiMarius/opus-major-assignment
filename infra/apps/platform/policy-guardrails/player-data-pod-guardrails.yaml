@@ -1,0 +1,56 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: player-data-pod-guardrails
+spec:
+  admission: true
+  validationFailureAction: Enforce
+  background: true
+  emitWarning: false
+  rules:
+    - name: require-run-as-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - player-data-*
+              selector:
+                matchLabels:
+                  app.kubernetes.io/part-of: opus-major-assignment
+      skipBackgroundRequests: true
+      validate:
+        allowExistingViolations: true
+        message: "Containers must set securityContext.runAsNonRoot=true."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  runAsNonRoot: true
+
+    - name: require-cpu-memory-requests-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - player-data-*
+              selector:
+                matchLabels:
+                  app.kubernetes.io/part-of: opus-major-assignment
+      skipBackgroundRequests: true
+      validate:
+        allowExistingViolations: true
+        message: "Containers must define cpu/memory requests and limits."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"

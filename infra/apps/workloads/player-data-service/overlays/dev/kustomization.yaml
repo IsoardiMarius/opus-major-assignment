@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: player-data-dev
+
+labels:
+  - includeSelectors: false
+    includeTemplates: true
+    pairs:
+      app.kubernetes.io/part-of: opus-major-assignment
+      app.kubernetes.io/environment: dev
+
+resources:
+  - ../../base
+  - observability/prometheusrule-demo-cpu.yaml
+
+patches:
+  - path: patches/patch-rollout-replicas.yaml
+    target:
+      kind: Rollout
+      name: player-data-service
+  - path: patches/patch-rollout-analysis-namespace.yaml
+    target:
+      kind: Rollout
+      name: player-data-service
+  - path: patches/patch-ingress-host.yaml
+    target:
+      kind: Ingress
+      name: player-data-service
+  - path: patches/patch-prometheusrule-namespace.yaml
+    target:
+      kind: PrometheusRule
+      name: player-data-service
+
+images:
+  - name: ghcr.io/isoardimarius/player-data-service
+    newName: ghcr.io/isoardimarius/player-data-service
+    digest: sha256:377d9059bab104463291b12da307d6a164905b67c18648228ab9603e7a278112

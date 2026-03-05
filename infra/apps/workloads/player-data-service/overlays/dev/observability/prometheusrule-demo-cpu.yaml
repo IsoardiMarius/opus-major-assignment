@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: player-data-service-demo-cpu
+  labels:
+    app.kubernetes.io/name: player-data-service
+    app.kubernetes.io/component: observability
+spec:
+  groups:
+    - name: player-data-service.demo
+      interval: 15s
+      rules:
+        - alert: PlayerDataServiceDevHighCpuDemo
+          expr: |
+            (
+              sum(rate(container_cpu_usage_seconds_total{namespace="player-data-dev",pod=~"player-data-cpu-burner-.*",cpu="total"}[1m]))
+              /
+              clamp_min(sum(kube_pod_container_resource_limits{namespace="player-data-dev",pod=~"player-data-cpu-burner-.*",resource="cpu",unit="core"}), 0.001)
+            ) > 0.90
+          for: 30s
+          labels:
+            severity: warning
+            service: player-data-service
+            slo: saturation
+            environment: dev
+            demo: "true"
+          annotations:
+            summary: "Demo CPU saturation in dev"
+            description: "CPU usage is above 90% of configured limit for more than 30 seconds (demo workload)."

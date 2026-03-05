@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: player-data-service
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            namespace: player-data-dev
+            path: infra/apps/workloads/player-data-service/overlays/dev
+          - env: staging
+            namespace: player-data-staging
+            path: infra/apps/workloads/player-data-service/overlays/staging
+          - env: prod
+            namespace: player-data-prod
+            path: infra/apps/workloads/player-data-service/overlays/prod
+  template:
+    metadata:
+      name: player-data-service-{{env}}
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/IsoardiMarius/opus-major-assignment.git
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - SkipDryRunOnMissingResource=true

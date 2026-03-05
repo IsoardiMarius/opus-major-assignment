@@ -1,0 +1,6 @@
+.idea
+.gotmp
+.gocache
+.DS_Store
+*.env
+.credentials
