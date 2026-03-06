@@ -14,7 +14,7 @@ type Store struct {
 func NewStore() *Store {
 	return &Store{
 		data: PlayerData{
-			PlayerID: "P1",
+			PlayerID: "P1-updated",
 			Username: "jammer",
 			Level:    1,
 			Region:   "eu-west",
